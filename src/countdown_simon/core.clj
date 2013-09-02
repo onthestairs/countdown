@@ -3,6 +3,16 @@
 (def operators
   ['+ '- '* '/])
 
+(defn locate-solutions [target ns]
+  (let [solutions (find-solutions target (map (fn [n]
+                                                 {:value n :exp n}) ns))]
+    (map (fn [solution]
+           (:exp solution)) solutions)))
+
+(defn print [coll]
+  (map (fn [item]
+         (println item)) coll))
+
 (defn find-solutions [target ns]
   (let [evaled-solutions (eval-solutions target ns)
         new-solutions (if (> (count ns) 1)
@@ -13,7 +23,7 @@
 
 (defn eval-solutions [target ns]
   (filter (fn [n]
-            (= target (eval n))) ns))
+            (= target (:value n))) ns))
 
 (defn eval-solutions [target ns]
   ;(println "<" ns ">")
@@ -27,19 +37,20 @@
                     a (first pair)
                     b (last pair)
                     solutionss (mapcat (fn [operator]
-                                         (let [c (list operator a b)
-                                               new-ns (cons c rest)
-                                               found-solutions (if (should-compute? operator a b)
-                                                                 (find-solutions target new-ns)
-                                                                 '())]
-                                           found-solutions)) operators)]
+                                         (if (should-compute? operator (:value a) (:value b))
+                                           (let [exp (list operator (:exp a) (:exp b))
+                                                 value ((eval operator) (:value a) (:value b))
+                                                 n {:exp exp :value value}
+                                                 new-ns (cons n rest)]
+                                             (find-solutions target new-ns))
+                                           '())) operators)]
                 solutionss)) pair-and-rests)))
 
 (defn should-compute? [operator a b]
   (cond
-   (= operator '+) (> (eval a) (eval b))
-   (= operator '*) (> (eval a) (eval b))
-   (= operator '/) (not= (eval b) 0)
+   (= operator '+) (> a b)
+   (= operator '*) (> a b)
+   (= operator '/) (not= b 0)
    :else true))
 
 (defn coll-rotations [coll]
@@ -47,7 +58,7 @@
     (map (fn [n]
            (concat
             (take-last (- count n) coll)
-            (take n coll))) (range count))))
+            (take n coll))) (range count)))))
 
 (defn pairs [ns]
   (let [rotations (coll-rotations ns)]
