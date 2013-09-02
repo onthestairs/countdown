@@ -1,7 +1,7 @@
 (ns countdown-simon.core)
 
 (def operators
-  [+ - *])
+  ['+ '- '* '/])
 
 (defn find-solutions [target ns]
   (let [evaled-solutions (eval-solutions target ns)
@@ -22,16 +22,25 @@
 (defn reduce-pairs [target ns]
   (let [pair-and-rests (pairs ns)]
     (mapcat (fn [pair-and-rest]
-                        (let [pair (:pair pair-and-rest)
-                              rest (:rest pair-and-rest)
-                              a (first pair)
-                              b (last pair)
-                              solutionss (mapcat (fn [operator]
-                                                   (let [c `(~operator ~a ~b)
-                                                         new-ns (cons c rest)
-                                                         found-solutions (find-solutions target new-ns)]
-                                                     found-solutions)) operators)]
-                          solutionss)) pair-and-rests)))
+              (let [pair (:pair pair-and-rest)
+                    rest (:rest pair-and-rest)
+                    a (first pair)
+                    b (last pair)
+                    solutionss (mapcat (fn [operator]
+                                         (let [c (list operator a b)
+                                               new-ns (cons c rest)
+                                               found-solutions (if (should-compute? operator a b)
+                                                                 (find-solutions target new-ns)
+                                                                 '())]
+                                           found-solutions)) operators)]
+                solutionss)) pair-and-rests)))
+
+(defn should-compute? [operator a b]
+  (cond
+   (= operator '+) (> (eval a) (eval b))
+   (= operator '*) (> (eval a) (eval b))
+   (= operator '/) (not= (eval b) 0)
+   :else true))
 
 (defn coll-rotations [coll]
   (let [count (count coll)]
