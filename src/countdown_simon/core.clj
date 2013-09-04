@@ -25,10 +25,6 @@
   (filter (fn [n]
             (= target (:value n))) ns))
 
-(defn eval-solutions [target ns]
-  ;(println "<" ns ">")
-  ns)
-
 (defn reduce-pairs [target ns]
   (let [pair-and-rests (pairs ns)]
     (mapcat (fn [pair-and-rest]
@@ -50,7 +46,7 @@
   (cond
    (= operator '+) (> a b)
    (= operator '*) (> a b)
-   (= operator '/) (not= b 0)
+   (= operator '/) (and (not= b 0) (= (mod a b) 0))
    :else true))
 
 (defn coll-rotations [coll]
